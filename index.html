@@ -360,6 +360,7 @@
     let best = Number(localStorage.getItem("flappyMalletBest") || 0);
     let shake = 0;
     let blitzTimer = 0;
+    let nextBlitzScore = 10;
     let nextObstacleAt = 0;
     let lastTime = 0;
 
@@ -394,6 +395,7 @@
       score = 0;
       shake = 0;
       blitzTimer = 0;
+      nextBlitzScore = 10;
       nextObstacleAt = 80;
       obstacles = [];
       tokens = [];
@@ -452,6 +454,19 @@
       if (!silent) spawnBurst(player.x - 12, player.y + 10, "#32d7ff", 8);
     }
 
+    function checkBlitzTrigger() {
+      if (practice || blitzTimer > 0) return;
+
+      if (score >= nextBlitzScore) {
+        blitzTimer = 320;
+        spawnBurst(player.x, player.y, "#ff3b5f", 24);
+
+        while (nextBlitzScore <= score) {
+          nextBlitzScore += 10;
+        }
+      }
+    }
+
     function spawnObstacle() {
       const gap = practice ? 210 : Math.max(158, 215 - score * 2.4);
       const margin = 80;
@@ -507,10 +522,6 @@
       if (state !== "playing") return;
 
       frame++;
-      if (score > 0 && score % 10 === 0 && blitzTimer <= 0 && frame % 20 === 0) {
-        blitzTimer = 320;
-      }
-
       if (blitzTimer > 0) {
         blitzTimer--;
         blitzText.classList.remove("hidden");
@@ -536,6 +547,7 @@
           ob.passed = true;
           score++;
           scoreText.textContent = score;
+          checkBlitzTrigger();
           spawnBurst(player.x, player.y, "#ffd166", 7);
         }
       });
@@ -547,6 +559,7 @@
           t.taken = true;
           score += 2;
           scoreText.textContent = score;
+          checkBlitzTrigger();
           spawnBurst(t.x, t.y, "#ffd166", 18);
         }
       });
