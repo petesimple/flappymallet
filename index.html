@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>Flappy Mallet</title>
   <style>
     :root {
@@ -19,6 +19,7 @@
     * {
       box-sizing: border-box;
       user-select: none;
+      -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -30,6 +31,8 @@
       color: var(--white);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow: hidden;
+      touch-action: manipulation;
+      overscroll-behavior: none;
     }
 
     body {
@@ -124,6 +127,7 @@
       border: 2px solid rgba(255, 255, 255, 0.14);
       background: #07101d;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), inset 0 0 0 2px rgba(50, 215, 255, 0.08);
+      touch-action: none;
     }
 
     canvas {
@@ -131,7 +135,7 @@
       height: 100%;
       display: block;
       cursor: pointer;
-      touch-action: manipulation;
+      touch-action: none;
     }
 
     .overlay {
@@ -187,6 +191,7 @@
       background: linear-gradient(135deg, var(--yellow), #fff2a6);
       cursor: pointer;
       box-shadow: 0 10px 28px rgba(255, 209, 102, 0.25);
+      touch-action: manipulation;
     }
 
     button.secondary {
@@ -363,6 +368,7 @@
     let nextBlitzScore = 10;
     let nextObstacleAt = 0;
     let lastTime = 0;
+    let lastTapTime = 0;
 
     const player = {
       x: 95,
@@ -821,12 +827,27 @@
       flap();
     }
 
+    function blockDoubleTapZoom(event) {
+      const tag = event.target.tagName.toLowerCase();
+      if (tag === "button") return;
+
+      const now = Date.now();
+
+      if (now - lastTapTime < 350) {
+        event.preventDefault();
+      }
+
+      lastTapTime = now;
+    }
+
     startBtn.addEventListener("click", () => resetGame(false));
     practiceBtn.addEventListener("click", () => resetGame(true));
     againBtn.addEventListener("click", () => resetGame(practice));
     menuBtn.addEventListener("click", showMenu);
 
-    canvas.addEventListener("pointerdown", handlePress);
+    canvas.addEventListener("pointerdown", handlePress, { passive: false });
+    document.addEventListener("touchstart", blockDoubleTapZoom, { passive: false });
+
     window.addEventListener("keydown", event => {
       if (["Space", "ArrowUp", "KeyW"].includes(event.code)) {
         event.preventDefault();
